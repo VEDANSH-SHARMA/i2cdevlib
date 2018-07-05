@@ -61,9 +61,9 @@ MPU6050::MPU6050(uint8_t address) {
  * the default internal clock source.
  */
 void MPU6050::initialize() {
-    setClockSource(MPU6050_CLOCK_PLL_XGYRO);
-    setFullScaleGyroRange(MPU6050_GYRO_FS_250);
-    setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
+    setClockSource(MPU6050_CLOCK_PLL_XGYRO); //MPU6050_CLOCK_PLL_XGYRO = 0x01 //setClockSource is a function of MPU6050 library
+    setFullScaleGyroRange(MPU6050_GYRO_FS_250); //MPU6050_GYRO_FS_250 = 0x00, MPU6050_GYRO_FS_500 = 0x01, MPU6050_GYRO_FS_1000 = 0x02, MPU6050_GYRO_FS_2000 = 0x03
+    setFullScaleAccelRange(MPU6050_ACCEL_FS_2); //MPU6050_ACCEL_FS_2 = 0x00, MPU6050_ACCEL_FS_4 = 0x01, MPU6050_ACCEL_FS_8 = 0x02, MPU6050_ACCEL_FS_16 = 0x03
     setSleepEnabled(false); // thanks to Jack Elston for pointing this one out!
 }
 
@@ -72,7 +72,7 @@ void MPU6050::initialize() {
  * @return True if connection is valid, false otherwise
  */
 bool MPU6050::testConnection() {
-    return getDeviceID() == 0x34;
+    return getDeviceID() == 0x34; // will return true if the device ID is equal to 0x34
 }
 
 // AUX_VDDIO register (InvenSense demo code calls this RA_*G_OFFS_TC)
@@ -83,8 +83,9 @@ bool MPU6050::testConnection() {
  * the MPU-6000, which does not have a VLOGIC pin.
  * @return I2C supply voltage level (0=VLOGIC, 1=VDD)
  */
-uint8_t MPU6050::getAuxVDDIOLevel() {
-    I2Cdev::readBit(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_PWR_MODE_BIT, buffer);
+uint8_t MPU6050::getAuxVDDIOLevel() { /*
+//int8_t I2Cdev::readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data, uint16_t timeout) */
+    I2Cdev::readBit(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_PWR_MODE_BIT, buffer); // "regAddr = MPU6050_RA_YG_OFFS_TC = 0x01", "bitNum = MPU6050_TC_PWR_MODE_BIT = 7", " *data = buffer"
     return buffer[0];
 }
 /** Set the auxiliary I2C supply voltage level.
@@ -94,7 +95,8 @@ uint8_t MPU6050::getAuxVDDIOLevel() {
  * @param level I2C supply voltage level (0=VLOGIC, 1=VDD)
  */
 void MPU6050::setAuxVDDIOLevel(uint8_t level) {
-    I2Cdev::writeBit(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_PWR_MODE_BIT, level);
+   /* bool I2Cdev::writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data) */
+    I2Cdev::writeBit(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_PWR_MODE_BIT, level); 
 }
 
 // SMPLRT_DIV register
@@ -121,7 +123,7 @@ void MPU6050::setAuxVDDIOLevel(uint8_t level) {
  * @see MPU6050_RA_SMPLRT_DIV
  */
 uint8_t MPU6050::getRate() {
-    I2Cdev::readByte(devAddr, MPU6050_RA_SMPLRT_DIV, buffer);
+    I2Cdev::readByte(devAddr, MPU6050_RA_SMPLRT_DIV, buffer); // MPU6050_RA_SMPLRT_DIV = 0x19
     return buffer[0];
 }
 /** Set gyroscope sample rate divider.
