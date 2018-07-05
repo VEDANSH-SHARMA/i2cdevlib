@@ -227,19 +227,19 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
             // smaller chunks instead of all at once
             for (uint8_t k = 0; k < length; k += min(length, BUFFER_LENGTH)) {
                 Wire.beginTransmission(devAddr);
-                Wire.send(regAddr);
+                Wire.send(regAddr); // send register to write to send casts to a uint8_t
                 Wire.endTransmission();
                 Wire.beginTransmission(devAddr);
-                Wire.requestFrom(devAddr, (uint8_t)min(length - k, BUFFER_LENGTH));
-
-                for (; Wire.available() && (timeout == 0 || millis() - t1 < timeout); count++) {
-                    data[count] = Wire.receive();
+                Wire.requestFrom(devAddr, (uint8_t)min(length - k, BUFFER_LENGTH)); // Wire.requestFrom(address of the device to request bytes from,the number of bytes to request)
+                  /* timeout is needed maybe because the I2C line may hang */
+                for (; Wire.available() && (timeout == 0 || millis() - t1 < timeout); count++) { //  OR = ||, first - then < And = &&
+                    data[count] = Wire.receive(); //Retrieve a byte that was transmitted from a slave device to a master
                     #ifdef I2CDEV_SERIAL_DEBUG
                         Serial.print(data[count], HEX);
                         if (count + 1 < length) Serial.print(" ");
                     #endif
                 }
-
+                
                 Wire.endTransmission();
             }
         #elif (ARDUINO == 100)
@@ -268,8 +268,8 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
             }
         #elif (ARDUINO > 100)
             // Arduino v1.0.1+, Wire library
-            // Adds official support for repeated start condition, yay!
-
+            // Adds official support for repeated start condition, yay! [https://www.i2c-bus.org/repeated-start-condition/]
+            // The purpose of this is to allow combined write/read operations to one or more devices without releasing the bus and thus with the guarantee that the operation is not interrupted.
             // I2C/TWI subsystem uses internal buffer that breaks with large data requests
             // so if user requests more than BUFFER_LENGTH bytes, we have to do it in
             // smaller chunks instead of all at once
@@ -478,6 +478,13 @@ bool I2Cdev::writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t 
     uint8_t b;
     readByte(devAddr, regAddr, &b);
     b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
+    /*
+    conditionalExpression ? expression1 : expression2
+    If conditionalExpression is true, expression1 is evaluated.
+    If conditionalExpression is false, expression2 is evaluated.
+    << left shift
+    ~ bitwise not
+    */
     return writeByte(devAddr, regAddr, b);
 }
 
